@@ -1,65 +1,113 @@
-DROP DATABASE IF EXISTS gold_tracker;
-CREATE DATABASE gold_tracker;
-USE gold_tracker;
+DROP DATABASE IF EXISTS goldtracker;
+CREATE DATABASE goldtracker;
+USE goldtracker;
 
-CREATE TABLE gold_price (
+CREATE TABLE goldprice (
     id INT AUTO_INCREMENT PRIMARY KEY,
     price DECIMAL(10,2) NOT NULL,
-    collected_date DATE NOT NULL UNIQUE,
-    collected_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_date (collected_date)
+    collecteddate DATE NOT NULL UNIQUE,
+    collectedtime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_date (collecteddate)
 );
 
-CREATE TABLE price_statistics (
+CREATE TABLE pricestatistics (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    stat_date DATE NOT NULL UNIQUE,
-    daily_avg DECIMAL(10,2),
-    daily_min DECIMAL(10,2),
-    daily_max DECIMAL(10,2),
-    weekly_avg DECIMAL(10,2),
-    monthly_avg DECIMAL(10,2),
-    price_change DECIMAL(10,2),
-    percent_change DECIMAL(5,2),
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    statdate DATE NOT NULL UNIQUE,
+    dailyavg DECIMAL(10,2),
+    dailymin DECIMAL(10,2),
+    dailymax DECIMAL(10,2),
+    weeklyavg DECIMAL(10,2),
+    monthlyavg DECIMAL(10,2),
+    pricechange DECIMAL(10,2),
+    percentchange DECIMAL(5,2),
+    updatedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE collection_logs (
+CREATE TABLE collectionlogs (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    collection_date DATE NOT NULL,
-    collection_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    collectiondate DATE NOT NULL,
+    collectiontime DATETIME DEFAULT CURRENT_TIMESTAMP,
     status ENUM('SUCCESS', 'FAILED') NOT NULL,
-    error_message TEXT,
-    price_collected DECIMAL(10,2)
+    errormessage TEXT,
+    pricecollected DECIMAL(10,2)
 );
 
-CREATE VIEW recent_prices AS
+CREATE VIEW recentprices AS
 SELECT 
     id,
     price,
-    collected_date,
-    collected_time,
-    ROUND(price - LAG(price) OVER (ORDER BY collected_date), 2) AS price_change,
-    ROUND(((price - LAG(price) OVER (ORDER BY collected_date)) / LAG(price) OVER (ORDER BY collected_date)) * 100, 2) AS percent_change
-FROM gold_price
-WHERE collected_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-ORDER BY collected_date DESC;
+    collecteddate,
+    collectedtime,
+    ROUND(price - LAG(price) OVER (ORDER BY collecteddate), 2) AS pricechange,
+    ROUND(((price - LAG(price) OVER (ORDER BY collecteddate)) / LAG(price) OVER (ORDER BY collecteddate)) * 100, 2) AS percentchange
+FROM goldprice
+WHERE collecteddate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+ORDER BY collecteddate DESC;
 
-CREATE VIEW price_summary AS
+CREATE VIEW pricesummary AS
 SELECT 
-    COUNT(*) AS total_records,
-    MIN(price) AS min_price,
-    MAX(price) AS max_price,
-    ROUND(AVG(price), 2) AS avg_price,
-    ROUND(STDDEV(price), 2) AS std_deviation,
-    MIN(collected_date) AS first_date,
-    MAX(collected_date) AS last_date
-FROM gold_price;
+    COUNT(*) AS totalrecords,
+    MIN(price) AS minprice,
+    MAX(price) AS maxprice,
+    ROUND(AVG(price), 2) AS avgprice,
+    ROUND(STDDEV(price), 2) AS stddeviation,
+    MIN(collecteddate) AS firstdate,
+    MAX(collecteddate) AS lastdate
+FROM goldprice;
 
-INSERT INTO gold_price (price, collected_date, collected_time) VALUES
-(1923.50, '2025-10-01', '2025-10-01 12:00:00'),
-(1926.80, '2025-10-02', '2025-10-02 12:00:00'),
-(1930.10, '2025-10-03', '2025-10-03 12:00:00'),
-(1928.40, '2025-10-04', '2025-10-04 12:00:00'),
-(1932.00, '2025-10-05', '2025-10-05 12:00:00');
+INSERT INTO goldprice (price, collecteddate, collectedtime) VALUES
+(2045.30, '2025-11-01', '2025-11-01 12:00:00'),
+(2048.75, '2025-11-02', '2025-11-02 12:00:00'),
+(2052.10, '2025-11-03', '2025-11-03 12:00:00'),
+(2049.85, '2025-11-04', '2025-11-04 12:00:00'),
+(2055.40, '2025-11-05', '2025-11-05 12:00:00'),
+(2058.90, '2025-11-06', '2025-11-06 12:00:00'),
+(2062.25, '2025-11-07', '2025-11-07 12:00:00'),
+(2059.60, '2025-11-08', '2025-11-08 12:00:00'),
+(2063.45, '2025-11-09', '2025-11-09 12:00:00'),
+(2067.80, '2025-11-10', '2025-11-10 12:00:00'),
+(2065.15, '2025-11-11', '2025-11-11 12:00:00'),
+(2070.50, '2025-11-12', '2025-11-12 12:00:00'),
+(2068.20, '2025-11-13', '2025-11-13 12:00:00'),
+(2072.85, '2025-11-14', '2025-11-14 12:00:00'),
+(2069.40, '2025-11-15', '2025-11-15 12:00:00'),
+(2074.95, '2025-11-16', '2025-11-16 12:00:00'),
+(2071.30, '2025-11-17', '2025-11-17 12:00:00'),
+(2076.60, '2025-11-18', '2025-11-18 12:00:00'),
+(2080.15, '2025-11-19', '2025-11-19 12:00:00'),
+(2077.85, '2025-11-20', '2025-11-20 12:00:00'),
+(2083.40, '2025-11-21', '2025-11-21 12:00:00'),
+(2086.70, '2025-11-22', '2025-11-22 12:00:00'),
+(2084.20, '2025-11-23', '2025-11-23 12:00:00'),
+(2089.55, '2025-11-24', '2025-11-24 12:00:00'),
+(2092.90, '2025-11-25', '2025-11-25 12:00:00'),
+(2090.35, '2025-11-26', '2025-11-26 12:00:00'),
+(2095.80, '2025-11-27', '2025-11-27 12:00:00'),
+(2093.15, '2025-11-28', '2025-11-28 12:00:00'),
+(2098.60, '2025-11-29', '2025-11-29 12:00:00'),
+(2096.25, '2025-11-30', '2025-11-30 12:00:00'),
+(2101.50, '2025-12-01', '2025-12-01 12:00:00'),
+(2099.80, '2025-12-02', '2025-12-02 12:00:00'),
+(2104.35, '2025-12-03', '2025-12-03 12:00:00'),
+(2107.90, '2025-12-04', '2025-12-04 12:00:00'),
+(2105.20, '2025-12-05', '2025-12-05 12:00:00'),
+(2110.65, '2025-12-06', '2025-12-06 12:00:00'),
+(2108.40, '2025-12-07', '2025-12-07 12:00:00'),
+(2113.75, '2025-12-08', '2025-12-08 12:00:00'),
+(2111.10, '2025-12-09', '2025-12-09 12:00:00'),
+(2116.55, '2025-12-10', '2025-12-10 12:00:00'),
+(2114.90, '2025-12-11', '2025-12-11 12:00:00'),
+(2119.30, '2025-12-12', '2025-12-12 12:00:00'),
+(2117.65, '2025-12-13', '2025-12-13 12:00:00'),
+(2122.40, '2025-12-14', '2025-12-14 12:00:00'),
+(2120.85, '2025-12-15', '2025-12-15 12:00:00'),
+(2125.20, '2025-12-16', '2025-12-16 12:00:00'),
+(2123.50, '2025-12-17', '2025-12-17 12:00:00'),
+(2128.95, '2025-12-18', '2025-12-18 12:00:00'),
+(2126.30, '2025-12-19', '2025-12-19 12:00:00'),
+(2131.70, '2025-12-20', '2025-12-20 12:00:00'),
+(2129.15, '2025-12-21', '2025-12-21 12:00:00'),
+(2134.60, '2025-12-22', '2025-12-22 12:00:00'),
+(2132.45, '2025-12-23', '2025-12-23 12:00:00');
 
 SELECT 'Database setup complete' AS Status;
