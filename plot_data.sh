@@ -1,4 +1,4 @@
-mysqlcmd="/opt/homebrew/opt/mysql@5.7/bin/mysql"
+mysql="/opt/homebrew/opt/mysql@5.7/bin/mysql"
 outputdir="plots"
 datafile="golddata.dat"
 statsfile="goldstats.dat"
@@ -6,7 +6,7 @@ logfile="logs/plot.log"
 mkdir -p $outputdir logs
 timestamp=$(date +"%Y-%m-%d %H:%M:%S")
 echo "[$timestamp] Starting plot generation..." >> $logfile
-$mysqlcmd -u root -s -N -e "USE goldtracker; SELECT collecteddate, price FROM goldprice ORDER BY collecteddate ASC;" > $datafile
+$mysqlcmd -u root -p -s -N -e "USE goldtracker; SELECT collecteddate, price FROM goldprice ORDER BY collecteddate ASC;" > $datafile
 if [ $? -ne 0 ]; then
     echo "[$timestamp] ERROR: Database export failed" >> $logfile
     exit 1
@@ -17,7 +17,7 @@ if [ $recordcount -eq 0 ]; then
     echo "[$timestamp] ERROR: No data found" >> $logfile
     exit 1
 fi
-$mysqlcmd -u root -s -N -e "USE goldtracker; SELECT MIN(price), MAX(price), AVG(price), STDDEV(price) FROM goldprice;" > $statsfile
+$mysqlcmd -u root -p -s -N -e "USE goldtracker; SELECT MIN(price), MAX(price), AVG(price), STDDEV(price) FROM goldprice;" > $statsfile
 gnuplot << EOF
 set terminal png size 1200,800
 set output "$outputdir/goldprice_line.png"
