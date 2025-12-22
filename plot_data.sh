@@ -1,4 +1,4 @@
-mysql="/opt/homebrew/opt/mysql@5.7/bin/mysql"
+mysqlcmd="/opt/homebrew/opt/mysql@5.7/bin/mysql"
 outputdir="plots"
 datafile="golddata.dat"
 statsfile="goldstats.dat"
