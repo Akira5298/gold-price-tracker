@@ -3,8 +3,6 @@ logs/
 *.dat
 gold_data.dat
 gold_stats.dat
-plots/*.png
-plots/*.jpg
 plots/*.svg
 !plots/.gitkeep
 *.sql.backup
