@@ -1,3 +1,6 @@
+#Defines paths, filenames, and prepares directories
+#Ensures that required directories exist, and adds timestamp for logging
+
 mysqlcmd="/opt/homebrew/opt/mysql@5.7/bin/mysql"
 outputdir="plots"
 datafile="golddata.dat"
@@ -6,18 +9,34 @@ logfile="logs/plot.log"
 mkdir -p $outputdir logs
 timestamp=$(date +"%Y-%m-%d %H:%M:%S")
 echo "[$timestamp] Starting plot generation..." >> $logfile
+
+#Extract historical gold price data from MySQL database
+#Saves it into a plain text file that gnuplot can read
+#Check if the database export failed or not
+
 $mysqlcmd -u root -p -s -N -e "USE goldtracker; SELECT collecteddate, price FROM goldprice ORDER BY collecteddate ASC;" > $datafile
 if [ $? -ne 0 ]; then
     echo "[$timestamp] ERROR: Database export failed" >> $logfile
     exit 1
 fi
+
+#Count the number of records that were exported
+#If no data exists, plotting literally makes no sense, so we stop
+
 recordcount=$(wc -l < $datafile)
 echo "[$timestamp] Exported $recordcount records" >> $logfile
 if [ $recordcount -eq 0 ]; then
     echo "[$timestamp] ERROR: No data found" >> $logfile
     exit 1
 fi
+
+#Calculates minimum, maximum, average, and standard deviation from the database
+#First chart: a simple line chart showing the price of gold over time
+#Second chart: similar to line chart but with data points marked
+#Third chart: an area chart to visually emphasise price changes
+
 $mysqlcmd -u root -p -s -N -e "USE goldtracker; SELECT MIN(price), MAX(price), AVG(price), STDDEV(price) FROM goldprice;" > $statsfile
+
 gnuplot << EOF
 set terminal png size 1200,800
 set output "$outputdir/goldprice_line.png"
@@ -30,6 +49,7 @@ set format x "%d %b"
 set grid
 plot "$datafile" using 1:2 with lines lw 2 title "Gold Price"
 EOF
+
 gnuplot << EOF
 set terminal png size 1200,800
 set output "$outputdir/goldprice_points.png"
@@ -42,6 +62,7 @@ set format x "%d %b"
 set grid
 plot "$datafile" using 1:2 with linespoints lw 2 pt 7 ps 1.5 title "Gold Price"
 EOF
+
 gnuplot << EOF
 set terminal png size 1200,800
 set output "$outputdir/goldprice_filled.png"
@@ -56,9 +77,16 @@ set style fill solid 0.3
 plot "$datafile" using 1:2 with filledcurves x1 title "Price Area", \
      "$datafile" using 1:2 with lines lw 2 title "Price Line"
 EOF
+
+#Fourth chart: reads statistical values and plots average and standard deviation lines
+#Fifth chart: calculates and plots 3-day moving average
+#To get a smooth curve that looks less noisy, showing the overall trend
+#Sixth chart: calculates day-to-day price changes and shows gains and losses
+
 read minprice maxprice avgprice stddev < $statsfile
 upper=$(echo "$avgprice + $stddev" | bc)
 lower=$(echo "$avgprice - $stddev" | bc)
+
 gnuplot << EOF
 set terminal png size 1200,800
 set output "$outputdir/goldprice_statistics.png"
@@ -76,6 +104,7 @@ plot "$datafile" using 1:2 with lines lw 2 title "Price", \
      $upper with lines lw 1.5 dt 3 title "+1 SD", \
      $lower with lines lw 1.5 dt 3 title "-1 SD"
 EOF
+
 gnuplot << EOF
 set terminal png size 1200,800
 set output "$outputdir/goldprice_movingavg.png"
@@ -93,6 +122,7 @@ init(x) = (back1 = back2 = back3 = 0)
 plot "$datafile" using 1:2 with lines lw 1 title "Actual", \
      "$datafile" using 1:(init(\$2), avg3(\$2)) with lines lw 2 title "3-Day Avg"
 EOF
+
 awk 'NR>1 {print prev_date, $2-prev_price} {prev_date=$1; prev_price=$2}' $datafile > ${datafile}.changes
 gnuplot << EOF
 set terminal png size 1200,800
@@ -108,6 +138,11 @@ set style fill solid 0.5
 plot "${datafile}.changes" using 1:(\$2>0?\$2:0) with boxes lc rgb "green" title "Increase", \
      "${datafile}.changes" using 1:(\$2<=0?\$2:0) with boxes lc rgb "red" title "Decrease"
 EOF
+
+#Seventh chart: shows only the most 7 recent data points, to focus on latest trends
+# Creates a text summary describing key statistics and performance metrics
+# Logs successful completion and removes temporary files
+
 startdate=$(tail -7 $datafile | head -1 | awk '{print $1}')
 enddate=$(tail -1 $datafile | awk '{print $1}')
 gnuplot << EOF
@@ -123,6 +158,7 @@ set grid
 set xrange ["$startdate":"$enddate"]
 plot "$datafile" using 1:2 with linespoints lw 2 pt 7 ps 1.5 title "Price"
 EOF
+
 firstdate=$(head -1 $datafile | awk '{print $1}')
 lastdate=$(tail -1 $datafile | awk '{print $1}')
 firstprice=$(head -1 $datafile | awk '{print $2}')
@@ -152,6 +188,7 @@ Generated Plots:
   6. goldprice_changes.png - Daily changes
   7. goldprice_recent.png - Recent period
 EOREPORT
+
 rm -f ${datafile}.changes
 echo "[$timestamp] All plots generated" >> $logfile
 echo "Plots saved in $outputdir/"
