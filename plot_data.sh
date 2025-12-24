@@ -139,10 +139,6 @@ plot "${datafile}.changes" using 1:(\$2>0?\$2:0) with boxes lc rgb "green" title
      "${datafile}.changes" using 1:(\$2<=0?\$2:0) with boxes lc rgb "red" title "Decrease"
 EOF
 
-#Seventh chart: shows only the most 7 recent data points, to focus on latest trends
-# Creates a text summary describing key statistics and performance metrics
-# Logs successful completion and removes temporary files
-
 startdate=$(tail -7 $datafile | head -1 | awk '{print $1}')
 enddate=$(tail -1 $datafile | awk '{print $1}')
 gnuplot << EOF
@@ -158,6 +154,51 @@ set grid
 set xrange ["$startdate":"$enddate"]
 plot "$datafile" using 1:2 with linespoints lw 2 pt 7 ps 1.5 title "Price"
 EOF
+
+gnuplot << EOF
+set terminal png size 800,600
+set output "$outputdir/goldprice_histogram.png"
+set title "Gold Price Distribution"
+set xlabel "Price Range (USD)"
+set ylabel "Frequency"
+set style fill solid 0.5
+set boxwidth 10
+plot "$datafile" using 2:(1) smooth freq with boxes title "Price Distribution"
+EOF
+
+awk '{print $1, $2}' $datafile | awk 'NR>1{print $1, ($2-p)^2; p=$2}' > ${datafile}.volatility
+gnuplot << EOF
+set terminal png size 800,600
+set output "$outputdir/goldprice_volatility.png"
+set title "Gold Price Volatility"
+set xlabel "Date"
+set ylabel "Price Variance"
+set xdata time
+set timefmt "%Y-%m-%d"
+set format x "%b %d"
+set grid
+plot "${datafile}.volatility" using 1:2 with impulses lw 2 title "Daily Variance"
+EOF
+rm -f ${datafile}.volatility
+
+
+# Creates a text summary describing key statistics and performance metrics
+# Logs successful completion and removes temporary files
+
+awk '{print $1, $2}' $datafile | awk 'BEGIN{sum=0; count=0; week=0} {sum+=$2; count++; if(count==7){print $1, sum/count; sum=0; count=0; week++}}' > ${datafile}.weekly
+gnuplot << EOF
+set terminal png size 800,600
+set output "$outputdir/goldprice_weekly.png"
+set title "Weekly Average Gold Prices"
+set xlabel "Date"
+set ylabel "Average Price (USD)"
+set xdata time
+set timefmt "%Y-%m-%d"
+set format x "%b %d"
+set grid
+plot "${datafile}.weekly" using 1:2 with linespoints lw 2 pt 7 ps 1.5 title "Weekly Average"
+EOF
+rm -f ${datafile}.weekly
 
 firstdate=$(head -1 $datafile | awk '{print $1}')
 lastdate=$(tail -1 $datafile | awk '{print $1}')
@@ -187,6 +228,9 @@ Generated Plots:
   5. goldprice_movingavg.png - Moving average
   6. goldprice_changes.png - Daily changes
   7. goldprice_recent.png - Recent period
+  8. goldprice_histogram.png - Price distribution
+  9. goldprice_volatility.png - Price volatility
+  10. goldprice_weekly.png - Weekly averages
 EOREPORT
 
 rm -f ${datafile}.changes
