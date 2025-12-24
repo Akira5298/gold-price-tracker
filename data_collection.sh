@@ -66,7 +66,7 @@ else
 fi
 
 #Check if the database operation was successful.
-#exit status of the last command is in $?, where 0 = success, and anything else = failure
+#Exit status of the last command is in $?, where 0 = success, and anything else = failure
 if [ $? -eq 0 ]; then
     echo "[$time] Success!" >> $logfile
     echo "Gold price $price saved for $date"
