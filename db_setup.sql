@@ -1,6 +1,13 @@
+--If the database already exists, it is deleted
+--Then creates and selects a new database
+
 DROP DATABASE IF EXISTS goldtracker;
 CREATE DATABASE goldtracker;
 USE goldtracker;
+
+--This table stores daily gold prices
+--Prevents storing more than one gold price for the same date
+--An index on the date helps make searches and reports faster
 
 CREATE TABLE goldprice (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -9,6 +16,10 @@ CREATE TABLE goldprice (
     collectedtime DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_date (collecteddate)
 );
+
+--This table stores calculated statistics for each day
+--It stores summaries on a daily, weekly, and monthly basis
+--Without the need of recalculating them every time
 
 CREATE TABLE pricestatistics (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -23,6 +34,10 @@ CREATE TABLE pricestatistics (
     updatedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+--This table tracks every data collection attempt
+--It records the success or failure of the collection
+--And stores error messages in case something went wrong
+
 CREATE TABLE collectionlogs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     collectiondate DATE NOT NULL,
@@ -31,6 +46,11 @@ CREATE TABLE collectionlogs (
     errormessage TEXT,
     pricecollected DECIMAL(10,2)
 );
+
+--'VIEW' = behaves like a virtual table that display the most recent data
+--First VIEW shows prices from the last 30 days
+--Also calculates day-to-day price changes and percentages
+--Second VIEW provides a quick summary of the whole dataset
 
 CREATE VIEW recentprices AS
 SELECT 
@@ -54,6 +74,9 @@ SELECT
     MIN(collecteddate) AS firstdate,
     MAX(collecteddate) AS lastdate
 FROM goldprice;
+
+--Inserts example gold price data
+--Last part confirms that the database setup finished successfully
 
 INSERT INTO goldprice (price, collecteddate, collectedtime) VALUES
 (2045.30, '2025-11-01', '2025-11-01 12:00:00'),
