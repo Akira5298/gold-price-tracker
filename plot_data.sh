@@ -139,6 +139,10 @@ plot "${datafile}.changes" using 1:(\$2>0?\$2:0) with boxes lc rgb "green" title
      "${datafile}.changes" using 1:(\$2<=0?\$2:0) with boxes lc rgb "red" title "Decrease"
 EOF
 
+#Seventh chart: shows only the most 7 recent data points, to focus on latest trends
+#Eighth chart: a histogram showing the distribution of gold prices over time
+#Ninth chart: display daily gold price volatility based on price changes
+
 startdate=$(tail -7 $datafile | head -1 | awk '{print $1}')
 enddate=$(tail -1 $datafile | awk '{print $1}')
 gnuplot << EOF
@@ -181,7 +185,7 @@ plot "${datafile}.volatility" using 1:2 with impulses lw 2 title "Daily Variance
 EOF
 rm -f ${datafile}.volatility
 
-
+#Tenth chart: shows weekly average prices to highlight longer-term trends
 # Creates a text summary describing key statistics and performance metrics
 # Logs successful completion and removes temporary files
 
