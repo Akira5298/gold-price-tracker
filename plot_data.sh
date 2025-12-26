@@ -165,12 +165,9 @@ set output "$outputdir/goldprice_histogram.png"
 set title "Gold Price Distribution" offset 0,-1
 set xlabel "Price Range (USD)"
 set ylabel "Frequency"
-set style fill solid 0.6
-set boxwidth 8
-set palette defined (0 "blue", 1 "green", 2 "yellow", 3 "orange", 4 "red")
-set style fill solid 0.7 border -1
-unset colorbox
-plot "$datafile" using 2:(1) smooth freq with boxes lc palette z notitle
+set style fill solid 0.5
+set boxwidth 15
+plot "$datafile" using 2:(1) smooth freq with boxes lc rgb "steelblue" title "Price Distribution"
 EOF
 
 awk '{print $1, $2}' $datafile | awk 'NR>1{diff=$2-p; print $1, (diff*diff); p=$2}' > ${datafile}.volatility
@@ -184,8 +181,9 @@ set xdata time
 set timefmt "%Y-%m-%d"
 set format x "%b %d"
 set grid
-set style fill solid 0.5
-plot "${datafile}.volatility" using 1:2 with impulses lw 3 lc rgb "red" title "Daily Variance"
+set style fill solid 0.7
+set boxwidth 0.8 relative
+plot "${datafile}.volatility" using 1:2 with boxes lc rgb "red" title "Daily Variance"
 EOF
 rm -f ${datafile}.volatility
 
