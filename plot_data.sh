@@ -89,7 +89,7 @@ samples7(x) = \$0 > 5 ? 7 : (\$0+1)
 avg7(x) = (shift7(x), (b1+b2+b3+b4+b5+b6+b7)/samples7(\$0))
 shift7(x) = (b7=b6, b6=b5, b5=b4, b4=b3, b3=b2, b2=b1, b1=x)
 init7(x) = (b1=b2=b3=b4=b5=b6=b7=0)
-plot "$datafile" using 1:2 with lines lw 1 lc rgb "gray" title "Actual", \
+plot "$datafile" using 1:2 with lines lw 2 lc rgb "red" title "Actual", \
      "$datafile" using 1:(\$0<6?1/0:(init7(\$2), avg7(\$2))) with lines lw 3 lc rgb "blue" title "7-Day Smoothed"
 EOF
 
