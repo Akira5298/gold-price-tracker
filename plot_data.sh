@@ -58,23 +58,7 @@ plot "${datafile}.gainloss" using 1:(\$2>=0?\$2:0) with filledcurves y1=0 lc rgb
 EOF
 rm -f ${datafile}.gainloss
 
-#Plot 2: Percentage Change from start
-awk -v fp=$firstprice '{print $1, (($2-fp)/fp)*100}' $datafile > ${datafile}.pctchange
-gnuplot << EOF
-set terminal png size 1200,800
-set output "$outputdir/goldprice_pctchange.png"
-set title "Percentage Change from Start"
-set xlabel "Date"
-set ylabel "Change (%)"
-set xdata time
-set timefmt "%Y-%m-%d"
-set format x "%d %b"
-set grid
-plot "${datafile}.pctchange" using 1:2 with lines lw 3 lc rgb "blue" title "% Change"
-EOF
-rm -f ${datafile}.pctchange
-
-#Plot 3: Actual vs 7-Day Smoothed
+#Plot 2: Actual vs 7-Day Smoothed
 gnuplot << EOF
 set terminal png size 1200,800
 set output "$outputdir/goldprice_smoothed.png"
@@ -294,18 +278,17 @@ Performance:
   Change: \$$pricechange ($percent%)
 Generated Plots:
   1. goldprice_gainloss.png - Cumulative gain/loss
-  2. goldprice_pctchange.png - Percentage change
-  3. goldprice_smoothed.png - 7-day smoothed trend
-  4. goldprice_weeklyrange.png - Weekly high/low
-  5. goldprice_points.png - With data points
-  6. goldprice_filled.png - Filled area
-  7. goldprice_statistics.png - Statistical analysis
-  8. goldprice_movingavg.png - Moving average
-  9. goldprice_changes.png - Daily changes
-  10. goldprice_recent.png - Recent period
-  11. goldprice_histogram.png - Price distribution
-  12. goldprice_volatility.png - Price volatility
-  13. goldprice_weekly.png - Weekly averages
+  2. goldprice_smoothed.png - 7-day smoothed trend
+  3. goldprice_weeklyrange.png - Weekly high/low
+  4. goldprice_points.png - With data points
+  5. goldprice_filled.png - Filled area
+  6. goldprice_statistics.png - Statistical analysis
+  7. goldprice_movingavg.png - Moving average
+  8. goldprice_changes.png - Daily changes
+  9. goldprice_recent.png - Recent period
+  10. goldprice_histogram.png - Price distribution
+  11. goldprice_volatility.png - Price volatility
+  12. goldprice_weekly.png - Weekly averages
 EOREPORT
 
 rm -f ${datafile}.changes
