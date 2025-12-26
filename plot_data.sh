@@ -160,28 +160,32 @@ plot "$datafile" using 1:2 with linespoints lw 2 pt 7 ps 1.5 title "Price"
 EOF
 
 gnuplot << EOF
-set terminal png size 800,600
+set terminal png size 1000,700
 set output "$outputdir/goldprice_histogram.png"
-set title "Gold Price Distribution"
+set title "Gold Price Distribution" offset 0,-1
 set xlabel "Price Range (USD)"
 set ylabel "Frequency"
-set style fill solid 0.5
-set boxwidth 10
-plot "$datafile" using 2:(1) smooth freq with boxes title "Price Distribution"
+set style fill solid 0.6
+set boxwidth 8
+set palette defined (0 "blue", 1 "green", 2 "yellow", 3 "orange", 4 "red")
+set style fill solid 0.7 border -1
+unset colorbox
+plot "$datafile" using 2:(1) smooth freq with boxes lc palette z notitle
 EOF
 
-awk '{print $1, $2}' $datafile | awk 'NR>1{print $1, ($2-p)^2; p=$2}' > ${datafile}.volatility
+awk '{print $1, $2}' $datafile | awk 'NR>1{diff=$2-p; print $1, (diff*diff); p=$2}' > ${datafile}.volatility
 gnuplot << EOF
-set terminal png size 800,600
+set terminal png size 1200,800
 set output "$outputdir/goldprice_volatility.png"
-set title "Gold Price Volatility"
+set title "Gold Price Volatility (Daily Variance)"
 set xlabel "Date"
-set ylabel "Price Variance"
+set ylabel "Variance (USD^2)"
 set xdata time
 set timefmt "%Y-%m-%d"
 set format x "%b %d"
 set grid
-plot "${datafile}.volatility" using 1:2 with impulses lw 2 title "Daily Variance"
+set style fill solid 0.5
+plot "${datafile}.volatility" using 1:2 with impulses lw 3 lc rgb "red" title "Daily Variance"
 EOF
 rm -f ${datafile}.volatility
 
