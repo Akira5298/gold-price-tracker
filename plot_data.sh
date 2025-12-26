@@ -167,8 +167,8 @@ set xlabel "Price Range (USD)"
 set ylabel "Frequency (Count)"
 set yrange [0:*]
 set style fill solid 0.6 border -1
-set boxwidth 18
-binwidth=20
+set boxwidth 10
+binwidth=10
 bin(x,width)=width*floor(x/width)
 plot "$datafile" using (bin(\$2,binwidth)):(1.0) smooth freq with boxes lc rgb "steelblue" title "Price Count"
 EOF
@@ -180,6 +180,7 @@ set output "$outputdir/goldprice_volatility.png"
 set title "Gold Price Volatility (Absolute Daily Change)"
 set xlabel "Date"
 set ylabel "Absolute Price Change (USD)"
+set yrange [0:10]
 set xdata time
 set timefmt "%Y-%m-%d"
 set format x "%b %d"
