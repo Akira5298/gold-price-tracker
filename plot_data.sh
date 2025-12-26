@@ -99,10 +99,10 @@ set format x "%d %b"
 set grid
 set label 1 sprintf("Avg: \$%.2f", $avgprice) at graph 0.02, 0.95
 set label 2 sprintf("Std: \$%.2f", $stddev) at graph 0.02, 0.91
-plot "$datafile" using 1:2 with lines lw 2 title "Price", \
-     $avgprice with lines lw 2 dt 2 title "Average", \
-     $upper with lines lw 1.5 dt 3 title "+1 SD", \
-     $lower with lines lw 1.5 dt 3 title "-1 SD"
+plot "$datafile" using 1:2 with lines lw 3 title "Price", \
+     $avgprice with lines lw 3 dt 2 title "Average", \
+     $upper with lines lw 2.5 dt 3 title "+1 SD", \
+     $lower with lines lw 2.5 dt 3 title "-1 SD"
 EOF
 
 gnuplot << EOF
