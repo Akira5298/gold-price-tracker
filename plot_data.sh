@@ -115,12 +115,12 @@ set xdata time
 set timefmt "%Y-%m-%d"
 set format x "%d %b"
 set grid
-samples(x) = \$0 > 2 ? 3 : (\$0+1)
+samples(x) = \$0 > 1 ? 3 : (\$0+1)
 avg3(x) = (shift3(x), (back1+back2+back3)/samples(\$0))
 shift3(x) = (back3 = back2, back2 = back1, back1 = x)
 init(x) = (back1 = back2 = back3 = 0)
 plot "$datafile" using 1:2 with lines lw 1 title "Actual", \
-     "$datafile" using 1:(init(\$2), avg3(\$2)) with lines lw 2 title "3-Day Avg"
+     "$datafile" using 1:(\$0<2?1/0:(init(\$2), avg3(\$2))) with lines lw 2 title "3-Day Avg"
 EOF
 
 awk 'NR>1 {print prev_date, $2-prev_price} {prev_date=$1; prev_price=$2}' $datafile > ${datafile}.changes
