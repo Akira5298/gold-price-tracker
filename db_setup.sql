@@ -5,7 +5,7 @@ DROP DATABASE IF EXISTS goldtracker;
 CREATE DATABASE goldtracker;
 USE goldtracker;
 
---This table stores daily gold prices
+--First table: stores daily gold prices
 --Prevents storing more than one gold price for the same date
 --An index on the date helps make searches and reports faster
 
@@ -17,7 +17,7 @@ CREATE TABLE goldprice (
     INDEX idx_date (collecteddate)
 );
 
---This table stores calculated statistics for each day
+--Second table: stores calculated statistics for each day
 --It stores summaries on a daily, weekly, and monthly basis
 --Without the need of recalculating them every time
 
@@ -34,7 +34,7 @@ CREATE TABLE pricestatistics (
     updatedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
---This table tracks every data collection attempt
+--Third table: tracks every data collection attempt
 --It records the success or failure of the collection
 --And stores error messages in case something went wrong
 

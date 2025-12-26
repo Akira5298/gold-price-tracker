@@ -7,7 +7,7 @@ date=$(date +"%Y-%m-%d")
 time=$(date +"%Y-%m-%d %H:%M:%S")
 logfile="logs/collection.log"
 errorlog="logs/error.log"
-mysql="/opt/homebrew/opt/mysql@5.7/bin/mysql"
+mysqlcmd="/opt/homebrew/opt/mysql@5.7/bin/mysql"
 mkdir -p logs
 echo "[$time] Starting collection..." >> $logfile
 
@@ -16,7 +16,7 @@ echo "[$time] Starting collection..." >> $logfile
 #The --max-time 30 option makes sure the attempt ends after 30 seconds
 #The content is saved in the variable named $webpage, if it's empty, it cannot be accessed
 
-webpage=$(curl -s --max-time 30 $sitelocation)
+webpage=$(curl -s -L --max-time 30 $sitelocation)
 if [ -z "$webpage" ]; then
     echo "[$time] ERROR: Cannot access website" >> $errorlog
     exit 1
