@@ -22,6 +22,7 @@ fi
 
 #Count the number of records that were exported
 #If no data exists, plotting literally makes no sense, so we stop
+#Calculates minimum, maximum, average, and standard deviation from the database
 
 recordcount=$(wc -l < $datafile)
 echo "[$timestamp] Exported $recordcount records" >> $logfile
@@ -30,14 +31,13 @@ if [ $recordcount -eq 0 ]; then
     exit 1
 fi
 
-#Calculates minimum, maximum, average, and standard deviation from the database
-#First chart: a simple line chart showing the price of gold over time
-#Second chart: similar to line chart but with data points marked
-#Third chart: an area chart to visually emphasise price changes
-
 $mysqlcmd -u root -p -s -N -e "USE goldtracker; SELECT MIN(price), MAX(price), AVG(price), STDDEV(price) FROM goldprice;" > $statsfile
 
-#Plot 1: Cumulative Gain/Loss from starting price
+#First chart: shows the total gain/loss from starting price
+#Second chart: compare the actual price vs 7-day smoothed trend
+#Third chart: displays weekly high/low price range
+#Fourth chart: similar to line chart but with data points marked
+
 firstprice=$(head -1 $datafile | awk '{print $2}')
 awk -v fp=$firstprice '{print $1, $2-fp}' $datafile > ${datafile}.gainloss
 gnuplot << EOF
@@ -58,7 +58,6 @@ plot "${datafile}.gainloss" using 1:(\$2>=0?\$2:0) with filledcurves y1=0 lc rgb
 EOF
 rm -f ${datafile}.gainloss
 
-#Plot 2: Actual vs 7-Day Smoothed
 gnuplot << EOF
 set terminal png size 1200,800
 set output "$outputdir/goldprice_smoothed.png"
@@ -109,6 +108,12 @@ set grid
 plot "$datafile" using 1:2 with linespoints lw 2 pt 7 ps 1.5 title "Gold Price"
 EOF
 
+#Fifth chart: an area chart to visually emphasise price changes
+#Sixth chart: reads statistical values and plots average and standard deviation lines
+#Seventh chart: calculates and plots 3-day moving average
+#To get a smooth curve that looks less noisy, showing the overall trend
+#Eighth chart: calculates day-to-day price changes and shows gains and losses
+
 gnuplot << EOF
 set terminal png size 1200,800
 set output "$outputdir/goldprice_filled.png"
@@ -123,11 +128,6 @@ set style fill solid 0.3
 plot "$datafile" using 1:2 with filledcurves x1 title "Price Area", \
      "$datafile" using 1:2 with lines lw 2 title "Price Line"
 EOF
-
-#Fourth chart: reads statistical values and plots average and standard deviation lines
-#Fifth chart: calculates and plots 3-day moving average
-#To get a smooth curve that looks less noisy, showing the overall trend
-#Sixth chart: calculates day-to-day price changes and shows gains and losses
 
 read minprice maxprice avgprice stddev < $statsfile
 upper=$(echo "$avgprice + $stddev" | bc)
@@ -185,9 +185,10 @@ plot "${datafile}.changes" using 1:(\$2>0?\$2:0) with boxes lc rgb "green" title
      "${datafile}.changes" using 1:(\$2<=0?\$2:0) with boxes lc rgb "red" title "Decrease"
 EOF
 
-#Seventh chart: shows only the most 7 recent data points, to focus on latest trends
-#Eighth chart: a histogram showing the distribution of gold prices over time
-#Ninth chart: display daily gold price volatility based on price changes
+#Ninth chart: shows only the most 7 recent data points, to focus on latest trends
+#Tenth chart: a histogram showing the distribution of gold prices over time
+#Eleventh chart: display daily gold price volatility based on price changes
+#Twelfth chart: shows weekly average prices to highlight longer-term trends
 
 startdate=$(tail -7 $datafile | head -1 | awk '{print $1}')
 enddate=$(tail -1 $datafile | awk '{print $1}')
@@ -237,7 +238,6 @@ plot "${datafile}.volatility" using 1:2 with boxes lc rgb "orange" title "Daily 
 EOF
 rm -f ${datafile}.volatility
 
-#Tenth chart: shows weekly average prices to highlight longer-term trends
 # Creates a text summary describing key statistics and performance metrics
 # Logs successful completion and removes temporary files
 
