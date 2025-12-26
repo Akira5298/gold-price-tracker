@@ -1,25 +1,26 @@
 Gold Price Tracker - Summary Report
-Generated: Tue Dec 23 19:15:19 JST 2025
-
+Generated: Fri Dec 26 13:35:47 JST 2025
 Records:       53
 Period: 2025-11-01 to 2025-12-23
-
 Price Statistics:
   Minimum: $2045.30
   Maximum: $2134.60
   Average: $2092.592453
   Std Dev: $25.646987384645566
-
 Performance:
   Start: $2045.30 (2025-11-01)
   End:   $2132.45 (2025-12-23)
   Change: $87.15 (4.00%)
-
 Generated Plots:
-  1. goldprice_line.png - Line chart
-  2. goldprice_points.png - With data points
-  3. goldprice_filled.png - Filled area
-  4. goldprice_statistics.png - Statistical analysis
-  5. goldprice_movingavg.png - Moving average
-  6. goldprice_changes.png - Daily changes
-  7. goldprice_recent.png - Recent period
+  1. goldprice_gainloss.png - Cumulative gain/loss
+  2. goldprice_smoothed.png - 7-day smoothed trend
+  3. goldprice_weeklyrange.png - Weekly high/low
+  4. goldprice_points.png - With data points
+  5. goldprice_filled.png - Filled area
+  6. goldprice_statistics.png - Statistical analysis
+  7. goldprice_movingavg.png - Moving average
+  8. goldprice_changes.png - Daily changes
+  9. goldprice_recent.png - Recent period
+  10. goldprice_histogram.png - Price distribution
+  11. goldprice_volatility.png - Price volatility
+  12. goldprice_weekly.png - Weekly averages
