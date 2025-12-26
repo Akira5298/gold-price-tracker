@@ -167,26 +167,26 @@ set xlabel "Price Range (USD)"
 set ylabel "Frequency (Count)"
 set yrange [0:*]
 set style fill solid 0.6 border -1
-set boxwidth 10
-binwidth=10
+set boxwidth 18
+binwidth=20
 bin(x,width)=width*floor(x/width)
 plot "$datafile" using (bin(\$2,binwidth)):(1.0) smooth freq with boxes lc rgb "steelblue" title "Price Count"
 EOF
 
-awk '{print $1, $2}' $datafile | awk 'NR>1{diff=$2-p; print $1, (diff*diff); p=$2}' > ${datafile}.volatility
+awk '{print $1, $2}' $datafile | awk 'NR>1{diff=$2-p; print $1, (diff<0?-diff:diff); p=$2}' > ${datafile}.volatility
 gnuplot << EOF
 set terminal png size 1200,800
 set output "$outputdir/goldprice_volatility.png"
-set title "Gold Price Volatility (Daily Variance)"
+set title "Gold Price Volatility (Absolute Daily Change)"
 set xlabel "Date"
-set ylabel "Variance (USD^2)"
+set ylabel "Absolute Price Change (USD)"
 set xdata time
 set timefmt "%Y-%m-%d"
 set format x "%b %d"
 set grid
 set style fill solid 0.7
 set boxwidth 0.8 relative
-plot "${datafile}.volatility" using 1:2 with boxes lc rgb "red" title "Daily Variance"
+plot "${datafile}.volatility" using 1:2 with boxes lc rgb "orange" title "Daily Volatility"
 EOF
 rm -f ${datafile}.volatility
 
