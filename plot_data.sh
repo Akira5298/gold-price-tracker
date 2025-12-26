@@ -162,12 +162,14 @@ EOF
 gnuplot << EOF
 set terminal png size 1000,700
 set output "$outputdir/goldprice_histogram.png"
-set title "Gold Price Distribution" offset 0,-1
+set title "Gold Price Distribution"
 set xlabel "Price Range (USD)"
-set ylabel "Frequency"
-set style fill solid 0.5
-set boxwidth 15
-plot "$datafile" using 2:(1) smooth freq with boxes lc rgb "steelblue" title "Price Distribution"
+set ylabel "Frequency (Count)"
+set style fill solid 0.6 border -1
+set boxwidth 5
+binwidth=5
+bin(x,width)=width*floor(x/width)
+plot "$datafile" using (bin(\$2,binwidth)):(1.0) smooth freq with boxes lc rgb "steelblue" title "Price Count"
 EOF
 
 awk '{print $1, $2}' $datafile | awk 'NR>1{diff=$2-p; print $1, (diff*diff); p=$2}' > ${datafile}.volatility
