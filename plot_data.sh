@@ -37,18 +37,80 @@ fi
 
 $mysqlcmd -u root -p -s -N -e "USE goldtracker; SELECT MIN(price), MAX(price), AVG(price), STDDEV(price) FROM goldprice;" > $statsfile
 
+#Plot 1: Cumulative Gain/Loss from starting price
+firstprice=$(head -1 $datafile | awk '{print $2}')
+awk -v fp=$firstprice '{print $1, $2-fp}' $datafile > ${datafile}.gainloss
 gnuplot << EOF
 set terminal png size 1200,800
-set output "$outputdir/goldprice_line.png"
-set title "Gold Price Trend"
+set output "$outputdir/goldprice_gainloss.png"
+set title "Cumulative Gain/Loss from Start"
+set xlabel "Date"
+set ylabel "Gain/Loss (USD)"
+set xdata time
+set timefmt "%Y-%m-%d"
+set format x "%d %b"
+set grid
+set yrange [*:*]
+set style fill solid 0.3
+plot "${datafile}.gainloss" using 1:(\$2>=0?\$2:0) with filledcurves y1=0 lc rgb "green" title "Gain", \
+     "${datafile}.gainloss" using 1:(\$2<0?\$2:0) with filledcurves y1=0 lc rgb "red" title "Loss", \
+     "${datafile}.gainloss" using 1:2 with lines lw 2 lc rgb "black" title "Net Change"
+EOF
+rm -f ${datafile}.gainloss
+
+#Plot 2: Percentage Change from start
+awk -v fp=$firstprice '{print $1, (($2-fp)/fp)*100}' $datafile > ${datafile}.pctchange
+gnuplot << EOF
+set terminal png size 1200,800
+set output "$outputdir/goldprice_pctchange.png"
+set title "Percentage Change from Start"
+set xlabel "Date"
+set ylabel "Change (%)"
+set xdata time
+set timefmt "%Y-%m-%d"
+set format x "%d %b"
+set grid
+plot "${datafile}.pctchange" using 1:2 with lines lw 3 lc rgb "blue" title "% Change"
+EOF
+rm -f ${datafile}.pctchange
+
+#Plot 3: Actual vs 7-Day Smoothed
+gnuplot << EOF
+set terminal png size 1200,800
+set output "$outputdir/goldprice_smoothed.png"
+set title "Actual Price vs 7-Day Smoothed Trend"
 set xlabel "Date"
 set ylabel "Price (USD)"
 set xdata time
 set timefmt "%Y-%m-%d"
 set format x "%d %b"
 set grid
-plot "$datafile" using 1:2 with lines lw 2 title "Gold Price"
+samples7(x) = \$0 > 5 ? 7 : (\$0+1)
+avg7(x) = (shift7(x), (b1+b2+b3+b4+b5+b6+b7)/samples7(\$0))
+shift7(x) = (b7=b6, b6=b5, b5=b4, b4=b3, b3=b2, b2=b1, b1=x)
+init7(x) = (b1=b2=b3=b4=b5=b6=b7=0)
+plot "$datafile" using 1:2 with lines lw 1 lc rgb "gray" title "Actual", \
+     "$datafile" using 1:(\$0<6?1/0:(init7(\$2), avg7(\$2))) with lines lw 3 lc rgb "blue" title "7-Day Smoothed"
 EOF
+
+#Plot 4: Weekly High/Low Range
+awk 'BEGIN{week=0; max=0; min=999999; date=""} {if(NR%7==1){if(NR>1)print date, min, max; max=$2; min=$2; date=$1; week++} else {if($2>max)max=$2; if($2<min)min=$2; date=$1}} END{print date, min, max}' $datafile > ${datafile}.weeklyrange
+gnuplot << EOF
+set terminal png size 1200,800
+set output "$outputdir/goldprice_weeklyrange.png"
+set title "Weekly Price Range (High/Low)"
+set xlabel "Week Ending"
+set ylabel "Price (USD)"
+set xdata time
+set timefmt "%Y-%m-%d"
+set format x "%b %d"
+set grid
+set style fill solid 0.3
+plot "${datafile}.weeklyrange" using 1:2:3 with filledcurves lc rgb "skyblue" title "Weekly Range", \
+     "${datafile}.weeklyrange" using 1:2 with lines lw 2 lc rgb "red" title "Low", \
+     "${datafile}.weeklyrange" using 1:3 with lines lw 2 lc rgb "green" title "High"
+EOF
+rm -f ${datafile}.weeklyrange
 
 gnuplot << EOF
 set terminal png size 1200,800
@@ -231,16 +293,19 @@ Performance:
   End:   \$$lastprice ($lastdate)
   Change: \$$pricechange ($percent%)
 Generated Plots:
-  1. goldprice_line.png - Line chart
-  2. goldprice_points.png - With data points
-  3. goldprice_filled.png - Filled area
-  4. goldprice_statistics.png - Statistical analysis
-  5. goldprice_movingavg.png - Moving average
-  6. goldprice_changes.png - Daily changes
-  7. goldprice_recent.png - Recent period
-  8. goldprice_histogram.png - Price distribution
-  9. goldprice_volatility.png - Price volatility
-  10. goldprice_weekly.png - Weekly averages
+  1. goldprice_gainloss.png - Cumulative gain/loss
+  2. goldprice_pctchange.png - Percentage change
+  3. goldprice_smoothed.png - 7-day smoothed trend
+  4. goldprice_weeklyrange.png - Weekly high/low
+  5. goldprice_points.png - With data points
+  6. goldprice_filled.png - Filled area
+  7. goldprice_statistics.png - Statistical analysis
+  8. goldprice_movingavg.png - Moving average
+  9. goldprice_changes.png - Daily changes
+  10. goldprice_recent.png - Recent period
+  11. goldprice_histogram.png - Price distribution
+  12. goldprice_volatility.png - Price volatility
+  13. goldprice_weekly.png - Weekly averages
 EOREPORT
 
 rm -f ${datafile}.changes
